@@ -1,3 +1,4 @@
+// index.js
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -12,16 +13,16 @@ app.use(cors({ optionsSuccessStatus: 200 }));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Página principal
-app.get("/", function (req, res) {
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views/index.html"));
 });
 
 // Ruta de ejemplo del boilerplate
-app.get("/api/hello", function (req, res) {
+app.get("/api/hello", (req, res) => {
   res.json({ greeting: "hello API" });
 });
 
-// ========= /api  (SIN PARÁMETRO: fecha actual) =========
+// ========= /api  (SIN parámetro: fecha actual) =========
 app.get("/api", (req, res) => {
   const now = new Date();
 
@@ -31,25 +32,23 @@ app.get("/api", (req, res) => {
   });
 });
 
-// ========= /api/:date  (CON PARÁMETRO) =========
+// ========= /api/:date  (CON parámetro) =========
 app.get("/api/:date", (req, res) => {
   const dateParam = req.params.date;
   let date;
 
-  // Si son solo dígitos, lo tratamos como timestamp en ms
+  // Solo dígitos -> timestamp en milisegundos
   if (/^\d+$/.test(dateParam)) {
     date = new Date(parseInt(dateParam, 10));
   } else {
-    // Si no, como string de fecha
+    // Si no, lo interpretamos como string de fecha
     date = new Date(dateParam);
   }
 
-  // Fecha inválida
   if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // Fecha válida
   res.json({
     unix: date.getTime(),
     utc: date.toUTCString()

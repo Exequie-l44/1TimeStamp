@@ -1,9 +1,6 @@
-
-  
-
-// index.js
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -11,41 +8,53 @@ const app = express();
 // CORS para que freeCodeCamp pueda testear
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-// Ruta base (no es obligatoria pero ayuda para ver que está vivo)
-app.get("/", (req, res) => {
-  res.send("Timestamp Microservice");
+// Archivos estáticos
+app.use("/public", express.static(path.join(__dirname, "public")));
+
+// Página principal
+app.get("/", function (req, res) {
+  res.sendFile(path.join(__dirname, "views/index.html"));
 });
 
-// Ruta principal del proyecto:
-// /api/:date?  -> el parámetro date es opcional
-app.get("/api/:date?", (req, res) => {
+// Ruta de ejemplo del boilerplate
+app.get("/api/hello", function (req, res) {
+  res.json({ greeting: "hello API" });
+});
+
+// ========= RUTA SIN PARÁMETRO: FECHA ACTUAL =========
+app.get("/api", (req, res) => {
+  const now = new Date();
+
+  return res.json({
+    unix: now.getTime(),
+    utc: now.toUTCString()
+  });
+});
+
+// ========= RUTA CON PARÁMETRO: TIMESTAMP =========
+app.get("/api/:date", (req, res) => {
   const dateParam = req.params.date;
 
   let date;
 
-  // 1) Si NO mandan parámetro (/api), debe devolver la fecha actual
-  if (!dateParam) {
-    date = new Date();
+  // Si todos los caracteres son dígitos, lo tomamos como timestamp en milisegundos
+  if (/^\d+$/.test(dateParam)) {
+    const timestamp = parseInt(dateParam, 10);
+    date = new Date(timestamp);
   } else {
-    // 2) Si todos los caracteres son dígitos, lo tomamos como timestamp en milisegundos
-    if (/^\d+$/.test(dateParam)) {
-      const timestamp = parseInt(dateParam, 10);
-      date = new Date(timestamp);
-    } else {
-      // 3) Si no, lo interpretamos como string de fecha
-      date = new Date(dateParam);
-    }
+    // Si no, lo interpretamos como string de fecha
+    date = new Date(dateParam);
   }
 
-  // 4) Si la fecha no es válida
+  // Si la fecha no es válida
   if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // 5) Respuesta correcta
+  // Respuesta correcta
   return res.json({
-    unix: date.getTime(),        // número en milisegundos
-    utc: date.toUTCString()      // ej: "Fri, 25 Dec 2015 00:00:00 GMT"
+    unix: date.getTime(),
+    utc: date.toUTCString()
   });
 });
 
